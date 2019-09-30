@@ -1,6 +1,9 @@
 import * as React from 'react'
-
+import { getBooks } from 'src/requests/book'
 class App extends React.Component {
+  public componentDidMount() {
+    getBooks()
+  }
   public render() {
     return (
       <div className="App">

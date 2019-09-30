@@ -1,5 +1,5 @@
 class HttpRequestHeader {
-  private header: Object
+  private header: object
 
   public getHeader() {
     return this

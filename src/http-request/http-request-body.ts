@@ -1,7 +1,6 @@
 class HttpRequestBody {
-  private body: Object
-  constructor() {}
-  public setBody(key: string, value: Object | string) {
+  private body: object
+  public setBody(key: string, value: object | string) {
     this.body[key] = value
   }
 }
