@@ -1,4 +1,4 @@
-import HttpRequest from 'src/http-request'
+import HttpRequest from 'src/module/http-request'
 
 export const getBooks = async () => {
   const request = new HttpRequest('/', 'GET', {

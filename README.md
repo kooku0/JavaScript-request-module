@@ -1,25 +1,27 @@
-쓸모없는 짓인지 일단 확인중...
-며칠 뒤 삭제 가능성 65%
-음.. 생각보다 순조롭다. get mehtod 사용 시 params 적용하는 부분만 하면 될 듯
+Complete!
 
-**호출부분**
+## Http Request Module
+
+**Example**
 
 ```javascript
-import HttpRequest from 'src/http-request'
+import HttpRequest from 'src/module/http-request'
 
 export const getBooks = async () => {
-  const request = new HttpRequest('http://localhost:4000', 'GET')
+  const request = new HttpRequest('/', 'GET', {
+    params: { name: 'hello' },
+    headers: { Authentication: 'token' },
+  })
   request.setErrorHandler(alert)
-  console.log('보내기 전')
   const response = await request.sendData()
   console.log(response)
-  console.log('보낸 후')
 }
 
-export const postBook = () => {
-  const request = new HttpRequest('http://localhost:4000', 'POST')
-  request.setBody('books', { book1: 'b1', book2: 'b2' })
-  request.sendData()
+export const postBook = async () => {
+  const request = new HttpRequest('/', 'POST', { body: { b1: 'book1' } })
+  request.setErrorHandler(alert)
+  const response = await request.sendData()
+  console.log(response)
 }
 
 function alert(statusCode: number) {
@@ -27,13 +29,18 @@ function alert(statusCode: number) {
 }
 ```
 
-**request class**
+**http request class**
 
 ```javascript
 import HttpRequestBody from './http-request-body'
 import HttpRequestHeader from './http-request-header'
 
-export type THttpMethod = 'POST' | 'GET' | 'DELETE' | 'UPDATE'
+type THttpMethod = 'POST' | 'GET' | 'DELETE' | 'UPDATE'
+interface IOptions {
+  headers?: Object
+  params?: Object
+  body?: Object
+}
 
 class HttpRequest {
   private method: THttpMethod
@@ -42,14 +49,35 @@ class HttpRequest {
   private url: string
   private xhttp: XMLHttpRequest
   private errorHandler: Function | null
+  private baseUrl: string
+  private query: string
 
-  constructor(url: string, httpMethod?: THttpMethod) {
+  constructor(url: string, httpMethod: THttpMethod, options?: IOptions) {
+    this.baseUrl =
+      process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : 'http://google.com'
     this.url = url
-    this.method = httpMethod || 'GET'
-    this.header = new HttpRequestHeader()
-    this.body = new HttpRequestBody()
+    this.method = httpMethod
+    this.query = ''
+    if (options) {
+      this.header = new HttpRequestHeader(options['headers'])
+      this.body = new HttpRequestBody(options['body'])
+      if (options.params) {
+        const params = options.params
+        this.query =
+          '?' +
+          Object.keys(params)
+            .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
+            .join('&')
+      }
+    } else {
+      this.header = new HttpRequestHeader()
+      this.body = new HttpRequestBody()
+    }
     this.xhttp = new XMLHttpRequest()
     this.errorHandler = null
+  }
+  public setBaseUrl(baseUrl: string) {
+    this.baseUrl = baseUrl
   }
   set httpMethod(httpRequestMethod: THttpMethod) {
     this.method = httpRequestMethod
@@ -69,20 +97,29 @@ class HttpRequest {
   public setBody(key: string, value: object | string) {
     this.body.setBody(key, value)
   }
-  public setErrorHandler(errorHandler: any) {
+  public setErrorHandler(errorHandler: Function) {
     this.errorHandler = errorHandler
   }
   public sendData() {
+    const { xhttp, method, baseUrl, url, body, errorHandler, header, query } = this
+    function setHeaderInXMLHttpRequest() {
+      xhttp.setRequestHeader('Content-Type', 'application/json')
+      const headers = header.getHeader()
+      for (let key in headers) {
+        xhttp.setRequestHeader(key, headers[key])
+      }
+    }
     return new Promise((resolve, reject) => {
-      this.xhttp.open(this.method, this.url, true)
-      this.xhttp.send()
-      this.xhttp.onreadystatechange = () => {
-        const { readyState, status, response } = this.xhttp
+      xhttp.open(method, baseUrl + url + query, true)
+      setHeaderInXMLHttpRequest()
+      xhttp.send(body.getBody())
+      xhttp.onreadystatechange = () => {
+        const { readyState, status, response } = xhttp
         if (readyState === XMLHttpRequest.DONE) {
           if (status === 200) {
             resolve(response)
           } else {
-            this.errorHandler ? this.errorHandler(status) : null
+            errorHandler ? errorHandler(status) : null
             reject('Promise Error')
           }
         }
