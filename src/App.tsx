@@ -3,6 +3,7 @@ import { getBooks } from 'src/requests/book'
 class App extends React.Component {
   public componentDidMount() {
     getBooks()
+    console.log('비동기 확인')
   }
   public render() {
     return (

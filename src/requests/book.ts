@@ -1,10 +1,12 @@
 import HttpRequest from 'src/http-request'
 
 export const getBooks = async () => {
-  const request = new HttpRequest('http://localhost:4000/d', 'GET')
+  const request = new HttpRequest('http://localhost:4000', 'GET')
   request.setErrorHandler(alert)
+  console.log('보내기 전')
   const response = await request.sendData()
   console.log(response)
+  console.log('보낸 후')
 }
 
 export const postBook = () => {
@@ -14,5 +16,5 @@ export const postBook = () => {
 }
 
 function alert(statusCode: number) {
-  console.log(statusCode)
+  console.log(`error ${statusCode}`)
 }
