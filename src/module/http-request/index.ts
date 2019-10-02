@@ -18,29 +18,37 @@ class HttpRequest {
   private baseUrl: string
   private query: string
 
-  constructor(url: string, httpMethod: THttpMethod, options?: IOptions) {
+  constructor(
+    requestUrl: string,
+    httpMethod: THttpMethod,
+    options?: IOptions,
+    errorFunction?: Function,
+  ) {
     this.baseUrl =
       process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : 'http://google.com'
-    this.url = url
+    this.url = requestUrl
     this.method = httpMethod
     this.query = ''
     if (options) {
-      this.header = new HttpRequestHeader(options['headers'])
-      this.body = new HttpRequestBody(options['body'])
-      if (options.params) {
-        const params = options.params
-        this.query =
-          '?' +
-          Object.keys(params)
-            .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
-            .join('&')
-      }
+      this.setOptions(options)
     } else {
       this.header = new HttpRequestHeader()
       this.body = new HttpRequestBody()
     }
     this.xhttp = new XMLHttpRequest()
-    this.errorHandler = null
+    this.errorHandler = errorFunction || null
+  }
+  private setOptions(options: Object) {
+    this.header = new HttpRequestHeader(options['headers'])
+    this.body = new HttpRequestBody(options['body'])
+    const params = options['params']
+    return (this.query = params ? this.parseParams(params) : '')
+  }
+  private parseParams(params: Object) {
+    const queryString = Object.keys(params)
+      .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
+      .join('&')
+    return '?' + queryString
   }
   public setBaseUrl(baseUrl: string) {
     this.baseUrl = baseUrl
@@ -66,30 +74,33 @@ class HttpRequest {
   public setErrorHandler(errorHandler: Function) {
     this.errorHandler = errorHandler
   }
-  public sendData() {
-    const { xhttp, method, baseUrl, url, body, errorHandler, header, query } = this
-    function setHeaderInXMLHttpRequest() {
-      xhttp.setRequestHeader('Content-Type', 'application/json')
-      const headers = header.getHeader()
-      for (let key in headers) {
-        xhttp.setRequestHeader(key, headers[key])
-      }
+  private setHeaderAtXMLHttpRequest() {
+    this.xhttp.setRequestHeader('Content-Type', 'application/json')
+    const headers = this.header.getHeader()
+    for (let key in headers) {
+      this.xhttp.setRequestHeader(key, headers[key])
     }
-    return new Promise((resolve, reject) => {
-      xhttp.open(method, baseUrl + url + query, true)
-      setHeaderInXMLHttpRequest()
-      xhttp.send(body.getBody())
-      xhttp.onreadystatechange = () => {
-        const { readyState, status, response } = xhttp
-        if (readyState === XMLHttpRequest.DONE) {
-          if (status === 200) {
-            resolve(response)
-          } else {
-            errorHandler ? errorHandler(status) : null
-            reject('Promise Error')
-          }
+  }
+  private requestCallBack(resolve: any, reject: any) {
+    this.xhttp.onreadystatechange = () => {
+      const { readyState, status, response } = this.xhttp
+      if (readyState === XMLHttpRequest.DONE) {
+        if (status === 200) {
+          resolve(response)
+        } else {
+          this.errorHandler ? this.errorHandler(status) : null
+          reject('Promise Error')
         }
       }
+    }
+  }
+  public sendData(): Promise<JSON | Error | undefined | null> {
+    const { xhttp, method, baseUrl, url, body, query } = this
+    xhttp.open(method, baseUrl + url + query, true)
+    this.setHeaderAtXMLHttpRequest()
+    return new Promise((resolve, reject) => {
+      xhttp.send(body.getBody())
+      this.requestCallBack(resolve, reject)
     })
   }
 }
