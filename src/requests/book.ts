@@ -17,6 +17,7 @@ export const postBook = async () => {
   console.log(response)
 }
 
-function alert(statusCode: number) {
-  console.log(`error ${statusCode}`)
+function alert(statusCode?: number) {
+  if (statusCOde) console.log(`error ${statusCode}`)
+  else console.log('error')
 }
