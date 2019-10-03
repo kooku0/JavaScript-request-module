@@ -11,6 +11,7 @@ export const getBooks = async () => {
 }
 
 export const postBook = async () => {
+  
   const request = new HttpRequest('/', 'POST', { body: { b1: 'book1' } })
   request.setErrorHandler(alert)
   const response = await request.sendData()
