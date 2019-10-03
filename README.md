@@ -1,6 +1,7 @@
-Complete!
+# Http Request Module
 
-## Http Request Module
+자바스크립트에서 사용할 수 있는 request 모듈을 만들었습니다. `axios`등 라이브러리들은 사용하지 않고 XMLHttpRequest를 사용하였습니다.
+라이브러리화 시키기 위해 Typescript로 작성하였지만 JavaScript로도 만들 계획입니다.
 
 **Example**
 
@@ -62,21 +63,21 @@ class HttpRequest {
       process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : 'http://google.com'
     this.url = requestUrl
     this.method = httpMethod
-    this.query = ''
-    if (options) {
-      this.setOptions(options)
-    } else {
-      this.header = new HttpRequestHeader()
-      this.body = new HttpRequestBody()
-    }
+    this.setOptions(options)
     this.xhttp = new XMLHttpRequest()
     this.errorHandler = errorFunction || null
   }
-  private setOptions(options: Object) {
-    this.header = new HttpRequestHeader(options['headers'])
-    this.body = new HttpRequestBody(options['body'])
-    const params = options['params']
-    return (this.query = params ? this.parseParams(params) : '')
+  private setOptions(options?: Object) {
+    if (options) {
+      this.header = new HttpRequestHeader(options['headers'])
+      this.body = new HttpRequestBody(options['body'])
+      const params = options['params']
+      this.query = params ? this.parseParams(params) : ''
+    } else {
+      this.header = new HttpRequestHeader()
+      this.body = new HttpRequestBody()
+      this.query = ''
+    }
   }
   private parseParams(params: Object) {
     const queryString = Object.keys(params)
@@ -140,6 +141,5 @@ class HttpRequest {
 }
 
 export default HttpRequest
-
 
 ```
