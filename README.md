@@ -1,7 +1,7 @@
 # Http Request Module
 
 자바스크립트에서 사용할 수 있는 request 모듈을 만들었습니다. `axios`등 라이브러리들은 사용하지 않고 XMLHttpRequest를 사용하였습니다.
-라이브러리화 시키기 위해 Typescript로 작성하였지만 JavaScript로도 만들 계획입니다.
+라이브러리화를 위해 Typescript로 작성하였지만 JavaScript로도 만들 계획입니다.
 
 **Example**
 
