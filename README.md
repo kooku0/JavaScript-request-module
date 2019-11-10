@@ -36,7 +36,7 @@ function alert(statusCode: number) {
 import HttpRequestBody from './http-request-body'
 import HttpRequestHeader from './http-request-header'
 
-type THttpMethod = 'POST' | 'GET' | 'DELETE' | 'UPDATE'
+type THttpMethod = 'POST' | 'GET' | 'DELETE' | 'PUT'
 interface IOptions {
   headers?: Object
   params?: Object
